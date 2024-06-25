@@ -4,8 +4,8 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
 // utiles
-import connectDB from "./config/db.config.js";
-import serverConfig from "./config/server.config.js";
+import connectDB from "../backend/config/db.config.js";
+import serverConfig from "../backend/config/server.config.js";
 
 
 dotenv.config();
@@ -28,3 +28,5 @@ app.get("/", (req, res) => {
 })
 
 app.listen(port, () => console.log(`Server listening on ${port}`));
+
+export default app;
