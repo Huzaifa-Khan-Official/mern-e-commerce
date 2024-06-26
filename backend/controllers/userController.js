@@ -30,4 +30,78 @@ const createUser = asyncHandler(async (req, res) => {
     }
 });
 
-export { createUser };
+const loginUser = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        throw new Error("Please enter all fields");
+    }
+
+    const userExits = await User.findOne({ email });
+
+    if (userExits) {
+        const isMatch = await bcrypt.compare(password, userExits.password);
+
+        if (isMatch) {
+            generateToken(res, userExits._id);
+            res.status(200).json({ _id: userExits._id, username: userExits.username, email: userExits.email, isAdmin: userExits.isAdmin });
+
+            return;
+        } else {
+            res.status(400).send("Invalid credentials");
+        }
+    } else {
+        res.status(400).send("Invalid credentials");
+    }
+});
+
+const logoutUser = asyncHandler(async (req, res) => {
+    res.cookie("jwt", "", {
+        expires: new Date(0),
+        httpOnly: true
+    });
+
+    res.status(200).send("User logged out successfully");
+})
+
+const getAllUsers = asyncHandler(async (req, res) => {
+    const users = await User.find({});
+    res.status(200).json(users);
+});
+
+const getCurrentUserProfile = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        res.status(200).json({ _id: user._id, username: user.username, email: user.email });
+    } else {
+        res.status(404);
+        throw new Error("User not found");
+    }
+});
+
+const updateCurrentUserProfile = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        user.username = req.body.username || user.username;
+        user.email = req.body.email || user.email;
+        if (req.body.password) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(req.body.password, salt);
+        }
+        const updatedUser = await user.save();
+
+        res.json({
+            _id: updatedUser._id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            isAdmin: updatedUser.isAdmin,
+        })
+    } else {
+        res.status(404);
+        throw new Error("User not found");
+    }
+})
+
+export { createUser, loginUser, logoutUser, getAllUsers, getCurrentUserProfile, updateCurrentUserProfile };
