@@ -77,4 +77,18 @@ const listCategory = asyncHandler(async (req, res) => {
     }
 })
 
-export { createCategory, updateCategory, deleteCategory, listCategory };
+const readCategory = asyncHandler(async (req, res) => {
+    try {
+        if (!req.params.id) {
+            return res.json({ error: "categoryId is required" });
+        }
+        const category = await Category.findOne({_id: req.params.id});
+
+        res.json(category);
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({error: error.message});
+    }
+})
+
+export { createCategory, updateCategory, deleteCategory, listCategory, readCategory };
